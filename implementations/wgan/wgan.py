@@ -90,13 +90,28 @@ if cuda:
 
 # Configure data loader
 os.makedirs("../../data/mnist", exist_ok=True)
-dataloader = torch.utils.data.DataLoader(
-    datasets.MNIST(
+
+
+
+few_shot_class = 5
+# Load data
+train_data = datasets.MNIST(
         "../../data/mnist",
         train=True,
         download=True,
         transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]),
-    ),
+    )  
+print('train len before removal')
+print(len(train_data.train_data))
+non_few_shot_ids = train_data.train_labels!=few_shot_class
+train_data.train_labels = train_data.train_labels[non_few_shot_ids]
+train_data.train_data = train_data.train_data[non_few_shot_ids]
+print('train post removal')
+print(len(train_data.train_data))
+
+
+dataloader = torch.utils.data.DataLoader(
+    train_data,
     batch_size=opt.batch_size,
     shuffle=True,
 )
@@ -164,4 +179,6 @@ for epoch in range(opt.n_epochs):
 
         if batches_done % opt.sample_interval == 0:
             save_image(gen_imgs.data[:25], "images/%d.png" % batches_done, nrow=5, normalize=True)
+        torch.save(optimizer_G.state_dict(), './optG.pkl')
+        torch.save(optimizer_D.state_dict(), './optD.pkl') 
         batches_done += 1
