@@ -203,14 +203,16 @@ def optimizeZ(test_loader):
        z.requires_grad = True
        print("Checking if z requires Gradient")
        print(z.requires_grad)
-       learning_rate = 0.0002
+       learning_rate = 0.002
        opt_iter = 0
 
        loss_fn = torch.nn.MSELoss(reduction='elementwise_mean')
        print("self.epochs")
-       epochs = 4000
+       epochs = 5000
        images = None
        for i, (image, _) in enumerate(test_loader):
+           if i != 24:
+               continue
            images = Variable(image.to(device).type(Tensor))
            grid_org = utils.make_grid(images)
            utils.save_image(grid_org, 'gen_aae_res/orig_ae_res_{}_{}.png'.format(str(opt_iter).zfill(3), str(is_emnist)))
@@ -237,16 +239,13 @@ def optimizeZ(test_loader):
              #update scale 
              optimizer.step()
 
-             if opt_iter % 100 == 0:
+             if opt_iter % 1000 == 0:
                  print("Iter {}, loss {}".format(str(opt_iter), str(loss.item())))
-                 #x_recon  = x_recon.mul(0.5).add(0.5)
-                 #x_recon = x_recon.data.cpu()[:64]
-                # grid = utils.make_grid(x_recon)
                  utils.save_image(x_recon, 'gen_aae_res/gen_ae_res_{}_{}.png'.format(str(opt_iter).zfill(3), str(is_emnist) ), nrow=opt.test_batch_size)
 
              opt_iter += 1
        comparison = torch.cat([og_recon, images, x_recon])  
-       utils.save_image(comparison.cpu() , 'gen_aae_res/comparison_{}.png'.format(str(opt_iter).zfill(3), str(is_emnist)), nrow=opt.test_batch_size )
+       utils.save_image(comparison.cpu() , 'gen_aae_res/comparison_{}_{}.png'.format(str(opt_iter).zfill(3), str(is_emnist)), nrow=opt.test_batch_size )
 
 for epoch in range(1):
     is_emnist = 0 
